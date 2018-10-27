@@ -1,2 +1,4 @@
 parameters:
     ignoreErrors:
+        - '#.*Eris\\Generator\\.*#'
+        - '#.*Call to an undefined method Eris\\Quantifier\\ForAll::then\(\).*#'
