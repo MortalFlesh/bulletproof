@@ -4,7 +4,7 @@ namespace MF\Bulletproof;
 
 interface TypeInferenceInterface
 {
-    public function deduceType(string $object, string $method): array;
+    public function deduceType(callable $function): array;
 
-    public function deduceReturnType($object, string $method): string;
+    public function deduceReturnType(callable $function): string;
 }

@@ -7,6 +7,7 @@ use MF\Bulletproof\Fixture\Calculator;
 class CalculatorTest extends AbstractTestCase
 {
     use \Eris\TestTrait;
+    use \MF\Bulletproof\Vest;
 
     /** @var Calculator */
     private $calculator;
@@ -14,21 +15,6 @@ class CalculatorTest extends AbstractTestCase
     protected function setUp(): void
     {
         $this->calculator = new Calculator();
-
-        // this should be done by PHPStan
-        $this->init(
-            new class() implements TypeInferenceInterface {
-                public function deduceType(string $object, string $method): array
-                {
-                    return ['int', 'int'];
-                }
-
-                public function deduceReturnType($object, string $method): string
-                {
-                    return 'int';
-                }
-            }
-        );
     }
 
     public function testShouldAddCorrectly(): void
@@ -38,40 +24,42 @@ class CalculatorTest extends AbstractTestCase
 
     public function testShouldAddIntegersAndReturnInteger(): void
     {
-        $this->shouldBeBulletProof($this->calculator, 'add');
+        $this->shouldBeBulletproof([$this->calculator, 'add']);
     }
 
     public function testShouldAddCorrectlyByGeneratedValues(): void
     {
-        $this->shouldBeBulletProof(
-            $this->calculator,
-            'add',
-            function (int $a, int $b): void {
-                $result = $this->calculator->add($a, $b);
+        $this->shouldBeBulletproof(
+            [$this->calculator, 'add'],
+            [
+                function (int $a, int $b): void {
+                    $result = $this->calculator->add($a, $b);
 
-                $this->assertSame(
-                    $a + $b,
-                    $result,
-                    $this->createMessage([$a, $b], [$result], 'are not same')
-                );
-            }
+                    $this->assertSame(
+                        $a + $b,
+                        $result,
+                        $this->createMessage([$a, $b], [$result], 'are not same')
+                    );
+                },
+            ]
         );
     }
 
     public function testShouldAddCorrectlyByGeneratedValuesButOnMethodWithBug(): void
     {
-        $this->shouldBeBulletProof(
-            $this->calculator,
-            'add',
-            function (int $a, int $b): void {
-                $result = $this->calculator->addWithBug($a, $b);
+        $this->shouldBeBulletproof(
+            [$this->calculator, 'add'],
+            [
+                function (int $a, int $b): void {
+                    $result = $this->calculator->addWithBug($a, $b);
 
-                $this->assertSame(
-                    $a + $b,
-                    $result,
-                    $this->createMessage([$a, $b], [$result], 'are not same')
-                );
-            }
+                    $this->assertSame(
+                        $a + $b,
+                        $result,
+                        $this->createMessage([$a, $b], [$result], 'are not same')
+                    );
+                },
+            ]
         );
     }
 }
