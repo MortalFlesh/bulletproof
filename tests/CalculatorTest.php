@@ -2,6 +2,7 @@
 
 namespace MF\Bulletproof;
 
+use MF\Bulletproof\Expectation\ExpectSame;
 use MF\Bulletproof\Fixture\Calculator;
 
 class CalculatorTest extends AbstractTestCase
@@ -32,15 +33,9 @@ class CalculatorTest extends AbstractTestCase
         $this->shouldBeBulletproof(
             [$this->calculator, 'add'],
             [
-                function (int $a, int $b): void {
-                    $result = $this->calculator->add($a, $b);
-
-                    $this->assertSame(
-                        $a + $b,
-                        $result,
-                        $this->createMessage([$a, $b], [$result], 'are not same')
-                    );
-                },
+                ExpectSame::by(function (int $a, int $b) {
+                    return $a + $b;
+                }),
             ]
         );
     }
@@ -48,17 +43,11 @@ class CalculatorTest extends AbstractTestCase
     public function testShouldAddCorrectlyByGeneratedValuesButOnMethodWithBug(): void
     {
         $this->shouldBeBulletproof(
-            [$this->calculator, 'add'],
+            [$this->calculator, 'addWithBug'],
             [
-                function (int $a, int $b): void {
-                    $result = $this->calculator->addWithBug($a, $b);
-
-                    $this->assertSame(
-                        $a + $b,
-                        $result,
-                        $this->createMessage([$a, $b], [$result], 'are not same')
-                    );
-                },
+                ExpectSame::by(function (int $a, int $b) {
+                    return $a + $b;
+                }),
             ]
         );
     }

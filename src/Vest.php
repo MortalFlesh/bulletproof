@@ -13,8 +13,9 @@ trait Vest
     protected function initBulletproof(): void
     {
         $this->bulletproof = new Bulletproof(
-            // this should be done by PHPStan
-            new class() implements TypeInferenceInterface {
+        // this should be done by PHPStan
+            new class() implements TypeInferenceInterface
+            {
                 public function deduceType(callable $function): array
                 {
                     return ['int', 'int'];
@@ -47,11 +48,6 @@ trait Vest
 
     protected function createMessage(array $source, array $result, string $problemDescription = 'is wrong'): string
     {
-        return sprintf(
-            'This array [%s] %s. Result is [%s].',
-            implode(', ', $source),
-            $problemDescription,
-            implode(', ', $result)
-        );
+        return Bulletproof::createMessage($source, $result, $problemDescription);
     }
 }

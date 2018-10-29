@@ -14,6 +14,16 @@ class Bulletproof
         $this->typeInference = $typeInference;
     }
 
+    public static function createMessage(array $source, array $result, string $problemDescription): string
+    {
+        return sprintf(
+            'This array [%s] %s. Result is [%s].',
+            implode(', ', $source),
+            $problemDescription,
+            implode(', ', $result)
+        );
+    }
+
     public function getGeneratorsForParameters(callable $function): array
     {
         return array_map(
