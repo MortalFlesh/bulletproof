@@ -1,2 +1,7 @@
 imports:
     - { resource: '%vendor_dir%/lmc/coding-standard/easy-coding-standard.yaml' }
+
+parameters:
+    skip:
+        Symplify\CodingStandard\Sniffs\Naming\TraitNameSniff:
+            - src/Vest.php
