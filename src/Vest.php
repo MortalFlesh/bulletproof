@@ -13,9 +13,8 @@ trait Vest
     protected function initBulletproof(): void
     {
         $this->bulletproof = new Bulletproof(
-        // this should be done by PHPStan
-            new class() implements TypeInferenceInterface
-            {
+            // this should be done by PHPStan
+            new class() implements TypeInferenceInterface {
                 public function deduceType(callable $function): array
                 {
                     return ['int', 'int'];
