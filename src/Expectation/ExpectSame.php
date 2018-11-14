@@ -2,7 +2,7 @@
 
 namespace MF\Bulletproof\Expectation;
 
-use MF\Bulletproof\Bulletproof;
+use MF\Bulletproof\Internal\Formatter;
 use PHPUnit\Framework\Assert;
 
 class ExpectSame implements ExpectationInterface
@@ -34,7 +34,7 @@ class ExpectSame implements ExpectationInterface
         Assert::assertSame(
             $expected,
             $result,
-            Bulletproof::createMessage($parameters, is_array($result) ? $result : [$result], 'are not same')
+            Formatter::createMessage($parameters, is_array($result) ? $result : [$result], 'are not same')
         );
     }
 }

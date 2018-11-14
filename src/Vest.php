@@ -2,42 +2,108 @@
 
 namespace MF\Bulletproof;
 
+use MF\Bulletproof\Internal\Formatter;
+use MF\Bulletproof\Internal\ReflectionTypeGuesser;
+use MF\Bulletproof\Internal\Type;
+use MF\Bulletproof\Internal\TypeTransformer;
+use function MF\Stringify\stringify;
+
 trait Vest
 {
-    /** @var Bulletproof */
-    private $bulletproof;
+    /** @var TypeTransformer */
+    private $typeTransformer;
+    /** @var CallableInferenceInterface */
+    private $callableInference;
+    /** @var ClassInferenceInterface */
+    private $classInference;
 
     /**
      * @before
      */
     protected function initBulletproof(): void
     {
-        $this->bulletproof = new Bulletproof(
-            // this should be done by PHPStan
-            new class() implements TypeInferenceInterface {
-                public function deduceType(callable $function): array
-                {
-                    return ['int', 'int'];
-                }
+        $this->typeTransformer = new TypeTransformer();
 
-                public function deduceReturnType(callable $function): string
-                {
-                    return 'int';
-                }
+        // todo implement dynamic callable inference
+        $this->callableInference = new class() implements CallableInferenceInterface {
+            public function deduceType(callable $function): array
+            {
+                return [
+                    Type::fromStaticTypes('int'),
+                    Type::fromStaticTypes('int'),
+                ];
             }
+
+            public function deduceReturnType(callable $function): Type
+            {
+                return Type::fromStaticTypes('int');
+            }
+        };
+
+        $this->classInference = new ReflectionTypeGuesser();
+    }
+
+    /**
+     * @param object $object
+     */
+    protected function methodShouldBeBulletproof(
+        $object,
+        string $method,
+        array $expectations = [],
+        int $iterations = 100
+    ): void {
+        $class = get_class($object);
+        $function = [$object, $method];
+
+        if (is_callable($function)) {
+            $this->shouldBeBulletproof(
+                $function,
+                $this->classInference->deduceType($class, $method),
+                $this->classInference->deduceReturnType($class, $method),
+                $expectations,
+                $iterations
+            );
+        } else {
+            throw new \InvalidArgumentException(
+                sprintf('Given object method of %s combination is invalid.', stringify($function))
+            );
+        }
+    }
+
+    protected function callableShouldBeBulletproof(
+        callable $function,
+        array $expectations = [],
+        int $iterations = 100
+    ): void {
+        $this->shouldBeBulletproof(
+            $function,
+            $this->callableInference->deduceType($function),
+            $this->callableInference->deduceReturnType($function),
+            $expectations,
+            $iterations
         );
     }
 
-    protected function shouldBeBulletproof(callable $function, array $expectations = []): void
-    {
-        $returnType = $this->bulletproof->deduceReturnType($function);
-
+    /** @param Type[] $parameterTypes */
+    private function shouldBeBulletproof(
+        callable $function,
+        array $parameterTypes,
+        Type $returnType,
+        array $expectations,
+        int $iterations
+    ): void {
         $this
-            ->forAll(...$this->bulletproof->getGeneratorsForParameters($function))
+            ->limitTo($iterations)
+            ->forAll(...$this->typeTransformer->transformParametersToGenerators($parameterTypes))
             ->then(function (...$parameters) use ($expectations, $returnType, $function): void {
                 $result = $function(...$parameters);
 
-                $this->assertInternalType($returnType, $result);
+                $type = gettype($result);
+                $this->assertContains(
+                    $type,
+                    $returnType->getTypes(),
+                    sprintf('%s is not in [%s]', $type, implode(', ', $returnType->getTypes()))
+                );
 
                 foreach ($expectations as $expectation) {
                     $expectation($result, ...$parameters);
@@ -47,6 +113,6 @@ trait Vest
 
     protected function createMessage(array $source, array $result, string $problemDescription = 'is wrong'): string
     {
-        return Bulletproof::createMessage($source, $result, $problemDescription);
+        return Formatter::createMessage($source, $result, $problemDescription);
     }
 }
