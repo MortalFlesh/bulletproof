@@ -23,14 +23,14 @@ class CalculatorTest extends AbstractTestCase
         $this->assertSame(2, $this->calculator->add(1, 1));
     }
 
-    public function testShouldAddIntegersAndReturnInteger(): void
+    public function testShouldAddIntegersAndReturnInteger_byNaiveInference(): void
     {
-        $this->shouldBeBulletproof([$this->calculator, 'add']);
+        $this->callableShouldBeBulletproof([$this->calculator, 'add']);
     }
 
-    public function testShouldAddCorrectlyByGeneratedValues(): void
+    public function testShouldAddCorrectlyByGeneratedValues_byNaiveInference(): void
     {
-        $this->shouldBeBulletproof(
+        $this->callableShouldBeBulletproof(
             [$this->calculator, 'add'],
             [
                 ExpectSame::by(function (int $a, int $b) {
@@ -40,10 +40,41 @@ class CalculatorTest extends AbstractTestCase
         );
     }
 
-    public function testShouldAddCorrectlyByGeneratedValuesButOnMethodWithBug(): void
+    public function testShouldAddCorrectlyByGeneratedValuesButOnMethodWithBug_byNaiveInference(): void
     {
-        $this->shouldBeBulletproof(
+        $this->callableShouldBeBulletproof(
             [$this->calculator, 'addWithBug'],
+            [
+                ExpectSame::by(function (int $a, int $b) {
+                    return $a + $b;
+                }),
+            ]
+        );
+    }
+
+    public function testShouldAddIntegersAndReturnInteger_byClassInference(): void
+    {
+        $this->methodShouldBeBulletproof($this->calculator, 'add');
+    }
+
+    public function testShouldAddCorrectlyByGeneratedValues_byClassInference(): void
+    {
+        $this->methodShouldBeBulletproof(
+            $this->calculator,
+            'add',
+            [
+                ExpectSame::by(function (int $a, int $b) {
+                    return $a + $b;
+                }),
+            ]
+        );
+    }
+
+    public function testShouldAddCorrectlyByGeneratedValuesButOnMethodWithBug_byClassInference(): void
+    {
+        $this->methodShouldBeBulletproof(
+            $this->calculator,
+            'addWithBug',
             [
                 ExpectSame::by(function (int $a, int $b) {
                     return $a + $b;

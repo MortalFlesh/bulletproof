@@ -15,7 +15,8 @@
     },
     "require": {
         "php": "^7.1",
-        "giorgiosironi/eris": "^0.11.0"
+        "giorgiosironi/eris": "^0.11.0",
+        "mf/stringify": "^1.0"
     },
     "require-dev": {
         "lmc/coding-standard": "^1.1",
